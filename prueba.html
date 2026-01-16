@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Fiscalización IIVTNU 2014 - Diputación A Coruña</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* stone-100 */
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .active-tab {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+            border-color: #0d9488;
+        }
+        
+        .inactive-tab {
+            background-color: white;
+            color: #4b5563; /* gray-600 */
+            border-color: #e5e7eb; /* gray-200 */
+        }
+        
+        .check-item-transition {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral (Stone/Slate) with Teal/Emerald Accents for Administrative Confidence -->
+    <!-- Application Structure Plan: 
+        1. Executive Dashboard: Top-level metrics (Universe, Sample, Outcome) for immediate understanding of scope and result.
+        2. Methodology Section: Explaining the "How" - random sampling and regulatory basis.
+        3. Interactive Sample Explorer: The core interactive element. A grid of municipalities allowing users to click and see the specific details of each audited file (amount, type, date). This replaces a static list.
+        4. Financial Analysis: Charts visualizing the distribution of tax amounts and transmission causes to show the variety of cases audited.
+        5. Verification Checklist: An interactive accordion detailing exactly WHAT was checked in each file (Normative, Calculations, etc.), educating the user on the audit process.
+    -->
+    <!-- Visualization & Content Choices:
+        - Big Number Cards: For immediate impact of key stats (7722 files, 0 errors).
+        - Bar Chart (Chart.js): To compare the 'Cuota Tributaria' across different files, highlighting the variance in tax amounts (from 5€ to 1400€).
+        - Doughnut Chart (Chart.js): To show the breakdown of Transmission Causes (Inheritance vs Purchase vs Other), providing context on the tax base.
+        - Interactive Grid: Replaces a map (NO SVG) to allow exploration of specific cases by Municipality.
+        - Accordion List: To organize the dense regulatory checklist items without overwhelming the user.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="text-slate-800">
+
+    <!-- Header Section -->
+    <header class="bg-slate-900 text-stone-50 py-12 px-4 shadow-lg">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="inline-block bg-teal-700 text-teal-100 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">Informe Definitivo 2016</div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Fiscalización IIVTNU Ejercicio 2014</h1>
+            <p class="text-xl text-slate-300 max-w-3xl mx-auto font-light">
+                Análisis interactivo del control financiero sobre el Impuesto sobre el Incremento de Valor de los Terrenos de Naturaleza Urbana (Plusvalía) gestionado por la Diputación de A Coruña.
+            </p>
+        </div>
+    </header>
+
+    <!-- Executive Summary / KPIs -->
+    <section class="max-w-6xl mx-auto -mt-8 px-4 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-teal-500 text-center card-hover">
+            <p class="text-sm uppercase text-slate-500 font-semibold tracking-wider">Universo Total</p>
+            <p class="text-4xl font-bold text-slate-800 my-2">7.722</p>
+            <p class="text-sm text-slate-600">Expedientes gestionados</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-blue-500 text-center card-hover">
+            <p class="text-sm uppercase text-slate-500 font-semibold tracking-wider">Muestra Auditada</p>
+            <p class="text-4xl font-bold text-slate-800 my-2">15</p>
+            <p class="text-sm text-slate-600">Selección aleatoria simple</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md border-b-4 border-emerald-500 text-center card-hover">
+            <p class="text-sm uppercase text-slate-500 font-semibold tracking-wider">Resultado</p>
+            <p class="text-4xl font-bold text-emerald-600 my-2">100%</p>
+            <p class="text-sm text-slate-600">Conformidad Normativa</p>
+        </div>
+    </section>
+
+    <!-- Intro & Context -->
+    <main class="max-w-6xl mx-auto mt-12 px-4 space-y-16 mb-20">
+        
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-3xl font-bold mb-6 text-slate-900 border-l-4 border-teal-600 pl-4">Objetivo y Alcance</h2>
+                <p class="text-lg leading-relaxed text-slate-700 mb-4">
+                    La <strong>Intervención General</strong> realizó una fiscalización "a posteriori" para verificar la legalidad de la gestión tributaria delegada por los ayuntamientos. El objetivo fue asegurar que las liquidaciones, autoliquidaciones y bajas del IIVTNU se ajustaran a la Ley Reguladora de Haciendas Locales y a las Ordenanzas Fiscales.
+                </p>
+                <p class="text-lg leading-relaxed text-slate-700">
+                    Se analizó una muestra representativa de <strong>15 expedientes</strong> seleccionados aleatoriamente del total de 7.722 operaciones del ejercicio 2014. El informe definitivo, emitido en junio de 2016, concluyó sin alegaciones por parte de la unidad gestora.
+                </p>
+            </div>
+            <div class="bg-white p-8 rounded-xl shadow-inner border border-stone-200">
+                <h3 class="text-xl font-bold mb-4 text-slate-800">Distribución de la Muestra</h3>
+                <p class="text-sm text-slate-500 mb-6">Desglose de los expedientes seleccionados por tipo de transmisión.</p>
+                <div class="chart-container">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Explorer Section -->
+        <section class="bg-white rounded-2xl shadow-xl overflow-hidden border border-stone-200">
+            <div class="bg-slate-800 p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">Explorador de Expedientes</h2>
+                <p class="text-slate-300">Seleccione un municipio para ver los detalles específicos del expediente auditado.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 min-h-[500px]">
+                <!-- Sidebar / Navigation -->
+                <div class="bg-stone-100 p-6 border-r border-stone-200 lg:col-span-1 overflow-y-auto max-h-[500px] lg:max-h-full">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Municipios Muestreados</h3>
+                    <div id="municipalityGrid" class="space-y-2">
+                        <!-- Buttons injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Detail View -->
+                <div class="p-6 md:p-8 lg:col-span-2 relative">
+                    <div id="caseDetailContent" class="h-full flex flex-col justify-center">
+                        <div class="text-center text-slate-400">
+                            <span class="text-6xl block mb-4">👆</span>
+                            <p class="text-xl">Seleccione un expediente de la lista para ver el análisis detallado.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Financial Analysis Section -->
+        <section>
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-4 text-slate-900 border-l-4 border-blue-600 pl-4">Análisis Económico</h2>
+                <p class="text-lg text-slate-700 max-w-4xl">
+                    El muestreo abarcó un amplio rango de importes tributarios, desde pequeñas cuotas de menos de 10€ hasta liquidaciones superiores a 1.400€, garantizando la representatividad de la fiscalización.
+                </p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md border border-stone-200">
+                <h3 class="text-lg font-bold mb-2 text-slate-800 text-center">Variabilidad de la Cuota Tributaria (Muestra)</h3>
+                <p class="text-sm text-slate-500 text-center mb-6">Comparativa de importes liquidados en los expedientes analizados (€)</p>
+                <div class="chart-container" style="max-width: 100%;">
+                    <canvas id="financeChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Verification Checklist (Accordion) -->
+        <section class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-8 text-center text-slate-900">¿Qué se verificó?</h2>
+            <p class="text-center text-slate-600 mb-10 max-w-2xl mx-auto">
+                La auditoría se basó en listas de comprobación rigurosas. Estos son los puntos clave validados en cada expediente para asegurar el cumplimiento normativo.
+            </p>
+
+            <div class="space-y-4" id="checklistContainer">
+                <!-- Check Items Injected via JS -->
+            </div>
+        </section>
+
+        <!-- Final Conclusion -->
+        <section class="bg-teal-50 border border-teal-100 rounded-2xl p-8 text-center">
+            <h2 class="text-2xl font-bold text-teal-900 mb-4">Conclusión Final</h2>
+            <p class="text-lg text-teal-800 max-w-3xl mx-auto mb-6">
+                De la fiscalización de las liquidaciones muestreadas se concluye que están <strong>correctamente practicadas</strong> en base a la documentación de origen. El reconocimiento y liquidación de derechos responde a la adecuada aplicación de la normativa.
+            </p>
+            <div class="inline-block bg-white text-teal-700 px-6 py-3 rounded-lg shadow-sm font-semibold border border-teal-200">
+                ✅ Sin alegaciones - Informe Definitivo
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <p>© 2026 Visualización basada en el Informe de Fiscalización IIVTNU 2014 - Diputación de A Coruña.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DATA STORAGE ---
+        // Data extracted directly from the report appendices/checklists
+        const cases = [
+            { id: 1, municipality: "Cee", type: "Herencia", amount: 5.68, date: "16/06/2013", outcome: "Correcto", desc: "Liquidación por transmisión mortis causa. Aplicación correcta de bonificaciones." },
+            { id: 2, municipality: "Ponteceso", type: "Compraventa", amount: 288.76, date: "07/09/2012", outcome: "Correcto", desc: "Transmisión intervivos. Valor catastral del suelo correcto." },
+            { id: 3, municipality: "Negreira", type: "Compraventa", amount: 1112.32, date: "28/12/2012", outcome: "Correcto", desc: "Proyecto de Reparcelación del Parque Empresarial. Cálculo complejo verificado." },
+            { id: 4, municipality: "Ares", type: "Adjudicación Judicial", amount: 11.24, date: "30/10/2013", outcome: "Correcto", desc: "Adjudicación a Konkreto-2000 SL. Periodo de generación 7 años." },
+            { id: 5, municipality: "Cariño", type: "Compraventa", amount: 17.03, date: "29/11/2013", outcome: "Correcto", desc: "Transmisión de pleno dominio. Tipo impositivo del 20% aplicado correctamente." },
+            { id: 6, municipality: "Corcubión", type: "Compraventa", amount: 439.20, date: "07/03/2014", outcome: "Correcto", desc: "Venta entre particulares. Periodo de generación 7 años." },
+            { id: 7, municipality: "Cedeira", type: "Herencia", amount: 214.98, date: "03/04/2013", outcome: "Correcto", desc: "Transmisión del 50% del inmueble. Documentación reconstruida por extravío, validada." },
+            { id: 8, municipality: "Neda", type: "Compraventa", amount: 460.79, date: "27/12/2010", outcome: "Correcto", desc: "Liquidación con retraso (38 meses). Recargo del 20% e intereses aplicados correctamente." },
+            { id: 9, municipality: "Ames", type: "Compraventa", amount: 1456.14, date: "17/06/2014", outcome: "Correcto", desc: "Venta intervivos. Periodo de generación de 19 años. Cálculo de base imponible correcto." },
+            { id: 10, municipality: "Cedeira", type: "Herencia", amount: 331.29, date: "27/08/2013", outcome: "Correcto", desc: "Herencia compleja con división horizontal previa. Cálculo ajustado al % de participación." },
+            { id: 11, municipality: "Ames", type: "Compraventa", amount: 10.00, date: "04/07/2014", outcome: "Correcto", desc: "Venta inmobiliaria (Mahía). Expediente vinculado a proyecto de compensación." },
+            { id: 12, municipality: "Ames", type: "Compraventa", amount: 432.98, date: "21/08/2014", outcome: "Correcto", desc: "Transmisión de pleno dominio. Autoliquidación presentada." },
+            { id: 13, municipality: "Ortigueira", type: "Dación en Pago", amount: 36.09, date: "11/06/2014", outcome: "Correcto", desc: "Dación en pago. Deudor no en umbral de exclusión, sujeto pasivo confirmado." },
+            { id: 14, municipality: "Cariño", type: "Herencia", amount: 27.31, date: "08/06/2013", outcome: "Correcto", desc: "Periodo de generación máximo (20 años) aplicado correctamente desde 1945." },
+            { id: 15, municipality: "Baja (Anulación)", type: "Anulación", amount: 0, date: "27/05/2014", outcome: "Correcto", desc: "Anulación por liquidación incorrecta previa. Se liquidó de nuevo a cada sujeto pasivo." }
+        ];
+
+        const checklistItems = [
+            {
+                title: "Adecuación Normativa",
+                content: "Verificación de que las liquidaciones se ajustan a los Art. 104-110 del TRLRHL y Ordenanzas Fiscales municipales.",
+                icon: "⚖️"
+            },
+            {
+                title: "Hecho Imponible",
+                content: "Comprobación de que el terreno tiene naturaleza urbana y la transmisión es un acto sujeto al impuesto (compraventa, herencia, donación, etc.).",
+                icon: "🏙️"
+            },
+            {
+                title: "Cálculo de la Base Imponible",
+                content: "Revisión del valor catastral del suelo, periodo de generación (máximo 20 años) y porcentajes anuales aplicados.",
+                icon: "🧮"
+            },
+            {
+                title: "Sujeto Pasivo",
+                content: "Identificación correcta del obligado tributario (adquirente en donaciones, transmitente en onerosas).",
+                icon: "👤"
+            },
+            {
+                title: "Gestión de Plazos y Recargos",
+                content: "Control de presentaciones fuera de plazo. Verificación de cálculo de recargos (5%, 10%, 15%, 20%) e intereses de demora si proceden.",
+                icon: "⏱️"
+            },
+            {
+                title: "Prescripción",
+                content: "Confirmación de que no han transcurrido más de 4 años desde el fin del plazo voluntario de declaración.",
+                icon: "📅"
+            }
+        ];
+
+        // --- DOM MANIPULATION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            renderMunicipalityList();
+            renderChecklist();
+            
+            // Select the first case by default
+            selectCase(cases[0].id); 
+        });
+
+        // 1. Render Municipality Buttons
+        function renderMunicipalityList() {
+            const container = document.getElementById('municipalityGrid');
+            container.innerHTML = '';
+
+            cases.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 flex justify-between items-center mb-1 group hover:bg-white hover:shadow-sm case-btn`;
+                btn.dataset.id = c.id;
+                btn.innerHTML = `
+                    <span class="group-hover:text-teal-700 text-slate-700">#${c.id} ${c.municipality}</span>
+                    <span class="text-xs text-slate-400 bg-white group-hover:bg-teal-50 px-2 py-1 rounded border border-stone-200">${c.type}</span>
+                `;
+                btn.onclick = () => selectCase(c.id);
+                container.appendChild(btn);
+            });
+        }
+
+        // 2. Select Case Logic
+        function selectCase(id) {
+            const selectedCase = cases.find(c => c.id === id);
+            
+            // Update UI Buttons
+            document.querySelectorAll('.case-btn').forEach(btn => {
+                if(parseInt(btn.dataset.id) === id) {
+                    btn.classList.add('bg-white', 'shadow-md', 'border-l-4', 'border-teal-500');
+                    btn.classList.remove('hover:bg-white');
+                } else {
+                    btn.classList.remove('bg-white', 'shadow-md', 'border-l-4', 'border-teal-500');
+                    btn.classList.add('hover:bg-white');
+                }
+            });
+
+            // Update Detail View
+            const detailContainer = document.getElementById('caseDetailContent');
+            detailContainer.innerHTML = `
+                <div class="animate-fade-in-up">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Expediente #${selectedCase.id}</span>
+                            <h3 class="text-3xl font-bold text-slate-800 mt-1">${selectedCase.municipality}</h3>
+                        </div>
+                        <div class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold uppercase border border-emerald-200">
+                            ${selectedCase.outcome}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                            <p class="text-xs text-slate-500 uppercase mb-1">Tipo de Transmisión</p>
+                            <p class="font-semibold text-slate-800">${selectedCase.type}</p>
+                        </div>
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                            <p class="text-xs text-slate-500 uppercase mb-1">Fecha Devengo</p>
+                            <p class="font-semibold text-slate-800">${selectedCase.date}</p>
+                        </div>
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 col-span-2">
+                            <p class="text-xs text-slate-500 uppercase mb-1">Cuota Tributaria Liquidada</p>
+                            <p class="text-2xl font-bold text-teal-700">${selectedCase.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-sm text-slate-600">
+                        <h4 class="text-slate-800 font-bold mb-2">Detalles de la Verificación</h4>
+                        <p>${selectedCase.desc}</p>
+                        <ul class="mt-4 space-y-2 list-none pl-0">
+                            <li class="flex items-center"><span class="mr-2 text-emerald-500">✓</span> Valor del terreno verificado</li>
+                            <li class="flex items-center"><span class="mr-2 text-emerald-500">✓</span> Periodo de generación comprobado</li>
+                            <li class="flex items-center"><span class="mr-2 text-emerald-500">✓</span> Tipo impositivo según ordenanza</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. Checklist Logic
+        function renderChecklist() {
+            const container = document.getElementById('checklistContainer');
+            
+            checklistItems.forEach((item, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "bg-white border border-stone-200 rounded-lg overflow-hidden shadow-sm";
+                
+                wrapper.innerHTML = `
+                    <button class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none hover:bg-stone-50 transition-colors" onclick="toggleChecklist(${index})">
+                        <div class="flex items-center">
+                            <span class="text-2xl mr-4">${item.icon}</span>
+                            <span class="font-semibold text-slate-800">${item.title}</span>
+                        </div>
+                        <span id="icon-${index}" class="text-slate-400 transform transition-transform duration-300">▼</span>
+                    </button>
+                    <div id="content-${index}" class="max-h-0 overflow-hidden check-item-transition bg-stone-50">
+                        <div class="px-6 py-4 text-slate-600 border-t border-stone-100">
+                            ${item.content}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(wrapper);
+            });
+        }
+
+        function toggleChecklist(index) {
+            const content = document.getElementById(`content-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // 4. Charts Initialization
+        function initCharts() {
+            // Data Prep
+            const typeCounts = cases.reduce((acc, c) => {
+                acc[c.type] = (acc[c.type] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Type Chart (Doughnut)
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            new Chart(ctxType, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(typeCounts),
+                    datasets: [{
+                        data: Object.values(typeCounts),
+                        backgroundColor: ['#0d9488', '#f59e0b', '#3b82f6', '#6366f1', '#ef4444'], // Teal, Amber, Blue, Indigo, Red
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20 } }
+                    }
+                }
+            });
+
+            // Finance Chart (Bar)
+            const ctxFinance = document.getElementById('financeChart').getContext('2d');
+            new Chart(ctxFinance, {
+                type: 'bar',
+                data: {
+                    labels: cases.map(c => c.municipality.substring(0,3) + ' #' + c.id),
+                    datasets: [{
+                        label: 'Cuota (€)',
+                        data: cases.map(c => c.amount),
+                        backgroundColor: cases.map(c => c.amount > 1000 ? '#0d9488' : '#94a3b8'), // Highlight high value cases
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
